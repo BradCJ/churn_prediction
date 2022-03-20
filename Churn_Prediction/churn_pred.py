@@ -52,7 +52,7 @@ x_sca = scaler.transform(x_encoded)
 x_sca = pd.DataFrame(x_sca, columns=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE"])
 
 
-# Train and Prediction Model
+# Train and Predict
 X_train, X_test, y_train, y_test = train_test_split(x_sca, y_encoded, train_size = .8, random_state = 101)
 
 algo = [
