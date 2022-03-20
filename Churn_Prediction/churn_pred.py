@@ -1,5 +1,4 @@
 import pandas as pd
-from scipy.fftpack import sc_diff
 import seaborn as sns
 import statsmodels.api as sm
 from sklearn.model_selection import train_test_split
