@@ -1,4 +1,5 @@
 import pandas as pd
+import graphviz
 import seaborn as sns
 import statsmodels.api as sm
 from sklearn.model_selection import train_test_split
@@ -11,7 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 
 
-# Import Churn Data i
+# Import Churn Data
 df = pd.read_csv(r'/mnt/c/Users/hpt-de/Documents/Central_Project/ML_Models/Churn_Prediction/CHURN_DATA.csv', dtype='unicode')
 
 
@@ -81,14 +82,21 @@ model = clf.fit(x_sca, y_encoded)
 
 fn = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE"]
 
-tree.plot_tree(model,
-                feature_names = fn,
-                filled=True)
+tree.plot_tree(model, 
+               feature_names = fn, 
+               filled=True)
 
 tree.export_graphviz(model,
                     out_file=r'/mnt/c/Users/hpt-de/Documents/Central_Project/ML_Models/Churn_Prediction/D_Tree.dot',
                     feature_names = fn,
                     filled = True)
+
+dot_data = tree.export_graphviz(model,
+                    out_file=None,
+                    feature_names = fn,
+                    filled = True)
+graph = graphviz.Source(dot_data)
+graph
 
 
 # Status Detail
