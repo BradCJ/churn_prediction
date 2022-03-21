@@ -17,7 +17,7 @@ df = pd.read_csv(r'/mnt/c/Users/hpt-de/Documents/Central_Project/ML_Models/Churn
 
 
 # Separate Feature and Target
-X = df[["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE"]]
+X = df[["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]]
 Y = df[["CHERN_FLAG"]]
 
 
@@ -25,7 +25,7 @@ Y = df[["CHERN_FLAG"]]
 label_encoder = LabelEncoder()
 
 # Encoding X
-encoding_x = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE"]
+encoding_x = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
 x_encoded = pd.DataFrame()
 for i in encoding_x:
     x_encoded[i] = pd.to_numeric(label_encoder.fit_transform(X[i]))
@@ -42,14 +42,14 @@ df = pd.concat([x_encoded,y_encoded], axis=1)
 
 
 # Pair Plot Graph
-sns.pairplot(df, vars=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE","CHERN_FLAG"], hue="CHERN_FLAG")
+# sns.pairplot(df, vars=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","CHERN_FLAG"], hue="CHERN_FLAG")
 
 
 # Transform Data with Scaler 
 scaler = StandardScaler()
 scaler.fit(x_encoded)
 x_sca = scaler.transform(x_encoded)
-x_sca = pd.DataFrame(x_sca, columns=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE"])
+x_sca = pd.DataFrame(x_sca, columns=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"])
 
 
 # Train and Predict
@@ -80,7 +80,7 @@ print(pd.DataFrame(model_score, columns=['score', 'model']).sort_values(by='scor
 clf = tree.DecisionTreeClassifier()
 model = clf.fit(x_sca, y_encoded)
 
-fn = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","LAST_VISIT_DATE","LAPSED_DAYS","CFH_VISIT","CFH_TOTAL_VISIT","CFH_LAST_VISIT_DATE","TD_VISIT","TD_TOTAL_VISIT","TD_LAST_VISIT_DATE","TM_VISIT","TM_TOTAL_VISIT","TM_LAST_VISIT_DATE"]
+fn = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
 
 tree.plot_tree(model, 
                feature_names = fn, 
