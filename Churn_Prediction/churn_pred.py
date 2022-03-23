@@ -1,4 +1,5 @@
 import pandas as pd
+import pytds
 import graphviz
 import seaborn as sns
 import statsmodels.api as sm
@@ -12,13 +13,30 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 
 
-# Import Churn Data
-df = pd.read_csv(r'/mnt/c/Users/hpt-de/Documents/Central_Project/ML_Models/Churn_Prediction/CHURN_DATA.csv', dtype='unicode')
+# Connect SQL Server
+conn = pytds.connect('####', '####', '####', '####')
+cur = conn.cursor()
+data = cur.execute('''
+    SELECT
+        CHERN_FLAG
+        ,OLYMPIC_SEGMENT
+        ,TOTAL
+        ,GP
+        ,BUSKET_SIZE
+        ,TOTAL_PRODUCT
+    FROM ####.####.####
+''')
+rows = data.fetchall()
+df = pd.DataFrame(rows)
+df.columns = ["CHURN_FLAG","OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
+print(df.head())
+cur.close()
+conn.close()
 
 
 # Separate Feature and Target
 X = df[["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]]
-Y = df[["CHERN_FLAG"]]
+Y = df[["CHURN_FLAG"]]
 
 
 # Encode Churn Data to Binary Format
@@ -33,7 +51,7 @@ print(x_encoded.head())
 
 #  Encoding Y
 y_encoded = pd.DataFrame()
-y_encoded["CHERN_FLAG"] = pd.to_numeric(label_encoder.fit_transform(Y['CHERN_FLAG']))
+y_encoded["CHURN_FLAG"] = pd.to_numeric(label_encoder.fit_transform(Y['CHURN_FLAG']))
 print(y_encoded.head())
 
 
@@ -42,7 +60,7 @@ df = pd.concat([x_encoded,y_encoded], axis=1)
 
 
 # Pair Plot Graph
-# sns.pairplot(df, vars=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","CHERN_FLAG"], hue="CHERN_FLAG")
+# sns.pairplot(df, vars=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","CHURN_FLAG"], hue="CHURN_FLAG")
 
 
 # Transform Data with Scaler 
@@ -53,7 +71,7 @@ x_sca = pd.DataFrame(x_sca, columns=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE
 
 
 # Train and Predict
-X_train, X_test, y_train, y_test = train_test_split(x_sca, y_encoded, train_size = .8, random_state = 101)
+x_train, x_test, y_train, y_test = train_test_split(x_sca, y_encoded, train_size = .8, random_state = 13)
 
 algo = [
     [LogisticRegression(solver='lbfgs'), 'LogisticRegression'],
@@ -64,14 +82,14 @@ algo = [
 model_score=[]
 for a in algo:
     model=a[0]
-    model.fit(X_train, y_train) 
-    y_pred=model.predict(X_test) 
-    score=model.score(X_test, y_test)
+    model.fit(x_train, y_train) 
+    y_pred=model.predict(x_test) 
+    score=model.score(x_test, y_test)
     model_score.append([score, a[1]])
     print(f'{a[1]} score = {score}')
     print(metrics.confusion_matrix(y_test, y_pred))
     print(metrics.classification_report(y_test, y_pred))
-    print('-' * 100)
+    print('_' * 130)
 
 print(pd.DataFrame(model_score, columns=['score', 'model']).sort_values(by='score', ascending=False))
 
@@ -82,12 +100,8 @@ model = clf.fit(x_sca, y_encoded)
 
 fn = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
 
-tree.plot_tree(model, 
-               feature_names = fn, 
-               filled=True)
-
 tree.export_graphviz(model,
-                    out_file=r'/mnt/c/Users/hpt-de/Documents/Central_Project/ML_Models/Churn_Prediction/D_Tree.dot',
+                    out_file=r'/mnt/c/Users/####/ML_Models/Churn_Prediction/D_Tree.dot',
                     feature_names = fn,
                     filled = True)
 
@@ -101,4 +115,4 @@ graph
 
 # Status Detail
 model_best = sm.Logit(y_encoded,x_sca).fit()
-model_best.summary2()
+model_best.summary()
