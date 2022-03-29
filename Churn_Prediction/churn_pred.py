@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytds
 import graphviz
@@ -56,7 +57,7 @@ print(y_encoded.head())
 
 
 # Create New DataFrame
-df = pd.concat([x_encoded,y_encoded], axis=1)
+df = pd.concat([x_encoded,y_encoded], axis = 1)
 
 
 # Pair Plot Graph
@@ -67,31 +68,36 @@ df = pd.concat([x_encoded,y_encoded], axis=1)
 scaler = StandardScaler()
 scaler.fit(x_encoded)
 x_sca = scaler.transform(x_encoded)
-x_sca = pd.DataFrame(x_sca, columns=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"])
+x_sca = pd.DataFrame(x_sca, columns = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"])
 
 
 # Train and Predict
-x_train, x_test, y_train, y_test = train_test_split(x_sca, y_encoded, train_size = .8, random_state = 13)
+x_train, x_test, y_train, y_test = train_test_split(x_sca, y_encoded, train_size = .8, random_state = 13, stratify = Y)
 
 algo = [
     [LogisticRegression(solver='lbfgs'), 'LogisticRegression'],
     [tree.DecisionTreeClassifier(), 'DecisionTreeClassifier'],
-    [GradientBoostingClassifier(), 'GradientBoostingClassifier'],
-    [RandomForestClassifier(), 'RandomForestClassifier']
+    [RandomForestClassifier(), 'RandomForestClassifier'],
+    [GradientBoostingClassifier(), 'GradientBoostingClassifier']
 ]
 model_score=[]
 for a in algo:
     model=a[0]
-    model.fit(x_train, y_train) 
-    y_pred=model.predict(x_test) 
+    model.fit(x_train, y_train.values.ravel())
+    y_pred=model.predict(x_test)
+    result_x = pd.DataFrame(x_test).reset_index(drop=True)
+    result_y = pd.DataFrame(y_test).reset_index(drop=True)
+    result = pd.concat([result_x,result_y], axis=1)
     score=model.score(x_test, y_test)
     model_score.append([score, a[1]])
     print(f'{a[1]} score = {score}')
     print(metrics.confusion_matrix(y_test, y_pred))
     print(metrics.classification_report(y_test, y_pred))
     print('_' * 130)
-
-print(pd.DataFrame(model_score, columns=['score', 'model']).sort_values(by='score', ascending=False))
+    print(result.head())
+    print('_' * 130)
+    
+print(pd.DataFrame(model_score, columns = ['score', 'model']).sort_values(by = 'score', ascending = False))
 
 
 # Plot Tree Graph
@@ -101,12 +107,12 @@ model = clf.fit(x_sca, y_encoded)
 fn = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
 
 tree.export_graphviz(model,
-                    out_file=r'/mnt/c/Users/####/ML_Models/Churn_Prediction/D_Tree.dot',
+                    out_file = r'/mnt/c/Users/####/ML_Models/Churn_Prediction/D_Tree.dot',
                     feature_names = fn,
                     filled = True)
 
 dot_data = tree.export_graphviz(model,
-                    out_file=None,
+                    out_file = None,
                     feature_names = fn,
                     filled = True)
 graph = graphviz.Source(dot_data)
