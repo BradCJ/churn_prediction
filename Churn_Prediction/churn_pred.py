@@ -96,7 +96,7 @@ for a in algo:
     print('_' * 130)
     print(result.head())
     print('_' * 130)
-    
+
 print(pd.DataFrame(model_score, columns = ['score', 'model']).sort_values(by = 'score', ascending = False))
 
 
@@ -121,4 +121,4 @@ graph
 
 # Status Detail
 model_best = sm.Logit(y_encoded,x_sca).fit()
-model_best.summary()
+model_best.summary2()
