@@ -29,22 +29,30 @@ data = cur.execute('''
 ''')
 rows = data.fetchall()
 df = pd.DataFrame(rows)
-df.columns = ["CHURN_FLAG","OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
+df.columns = ['SBL_MEMBER_ID','CHURN_FLAG','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
 print(df.head())
 cur.close()
 conn.close()
 
 
 # Separate Feature and Target
-X = df[["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]]
-Y = df[["CHURN_FLAG"]]
+ID = df[['SBL_MEMBER_ID']]
+X = df[['SBL_MEMBER_ID','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']]
+Y = df[['CHURN_FLAG']]
 
 
 # Encode Churn Data to Binary Format
 label_encoder = LabelEncoder()
 
+# Encoding ID
+encoding_id = pd.DataFrame()
+encoding_id['SBL_MEMBER_ID'] = pd.to_numeric(label_encoder.fit_transform(ID['SBL_MEMBER_ID']))
+encoding_id.columns = ['ENCODED_ID']
+Master_ID_encoded = pd.concat([ID,encoding_id], axis=1)
+print(Master_ID_encoded.head())
+
 # Encoding X
-encoding_x = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
+encoding_x = ['SBL_MEMBER_ID','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
 x_encoded = pd.DataFrame()
 for i in encoding_x:
     x_encoded[i] = pd.to_numeric(label_encoder.fit_transform(X[i]))
@@ -52,7 +60,7 @@ print(x_encoded.head())
 
 #  Encoding Y
 y_encoded = pd.DataFrame()
-y_encoded["CHURN_FLAG"] = pd.to_numeric(label_encoder.fit_transform(Y['CHURN_FLAG']))
+y_encoded['CHURN_FLAG'] = pd.to_numeric(label_encoder.fit_transform(Y['CHURN_FLAG']))
 print(y_encoded.head())
 
 
@@ -61,23 +69,23 @@ df = pd.concat([x_encoded,y_encoded], axis = 1)
 
 
 # Pair Plot Graph
-# sns.pairplot(df, vars=["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT","CHURN_FLAG"], hue="CHURN_FLAG")
+# sns.pairplot(df, vars=['OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT','CHURN_FLAG'], hue='CHURN_FLAG')
 
 
 # Transform Data with Scaler 
-scaler = StandardScaler()
-scaler.fit(x_encoded)
-x_sca = scaler.transform(x_encoded)
-x_sca = pd.DataFrame(x_sca, columns = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"])
+# scaler = StandardScaler()
+# scaler.fit(x_encoded)
+# x_sca = scaler.transform(x_encoded)
+# x_sca = pd.DataFrame(x_sca, columns = ['OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT'])
 
 
 # Train and Predict
-x_train, x_test, y_train, y_test = train_test_split(x_sca, y_encoded, train_size = .8, random_state = 13, stratify = Y)
+x_train, x_test, y_train, y_test = train_test_split(x_encoded, y_encoded, train_size = .8, random_state = 13, stratify = Y)
 
 algo = [
-    [LogisticRegression(solver='lbfgs'), 'LogisticRegression'],
-    [tree.DecisionTreeClassifier(), 'DecisionTreeClassifier'],
-    [RandomForestClassifier(), 'RandomForestClassifier'],
+    # [LogisticRegression(solver='lbfgs'), 'LogisticRegression'],
+    # [tree.DecisionTreeClassifier(), 'DecisionTreeClassifier'],
+    # [RandomForestClassifier(), 'RandomForestClassifier'],
     [GradientBoostingClassifier(), 'GradientBoostingClassifier']
 ]
 model_score=[]
@@ -87,7 +95,9 @@ for a in algo:
     y_pred=model.predict(x_test)
     result_x = pd.DataFrame(x_test).reset_index(drop=True)
     result_y = pd.DataFrame(y_test).reset_index(drop=True)
-    result = pd.concat([result_x,result_y], axis=1)
+    concat_result = pd.concat([result_x,result_y], axis=1)
+    result = concat_result.merge(Master_ID_encoded, left_on='SBL_MEMBER_ID', right_on='ENCODED_ID', suffixes=('_Encoded', ''))
+    export_result = result.to_csv(r'/mnt/c/Users/####/ML_Models/Churn_Prediction/Churn_Result.csv', index = False)
     score=model.score(x_test, y_test)
     model_score.append([score, a[1]])
     print(f'{a[1]} score = {score}')
@@ -95,30 +105,29 @@ for a in algo:
     print(metrics.classification_report(y_test, y_pred))
     print('_' * 130)
     print(result.head())
-    print('_' * 130)
 
 print(pd.DataFrame(model_score, columns = ['score', 'model']).sort_values(by = 'score', ascending = False))
 
 
 # Plot Tree Graph
-clf = tree.DecisionTreeClassifier()
-model = clf.fit(x_sca, y_encoded)
+# clf = tree.DecisionTreeClassifier()
+# model = clf.fit(x_encoded, y_encoded)
 
-fn = ["OLYMPIC_SEGMENT","TOTAL","GP","BUSKET_SIZE","TOTAL_PRODUCT"]
+# fn = ['OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
 
-tree.export_graphviz(model,
-                    out_file = r'/mnt/c/Users/####/ML_Models/Churn_Prediction/D_Tree.dot',
-                    feature_names = fn,
-                    filled = True)
+# tree.export_graphviz(model,
+#                     out_file = r'/mnt/c/Users/####/ML_Models/Churn_Prediction/D_Tree.dot',
+#                     feature_names = fn,
+#                     filled = True)
 
-dot_data = tree.export_graphviz(model,
-                    out_file = None,
-                    feature_names = fn,
-                    filled = True)
-graph = graphviz.Source(dot_data)
-graph
+# dot_data = tree.export_graphviz(model,
+#                     out_file = None,
+#                     feature_names = fn,
+#                     filled = True)
+# graph = graphviz.Source(dot_data)
+# graph
 
 
 # Status Detail
-model_best = sm.Logit(y_encoded,x_sca).fit()
+model_best = sm.Logit(y_encoded,x_encoded).fit()
 model_best.summary2()
