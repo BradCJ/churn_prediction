@@ -15,29 +15,34 @@ from sklearn.preprocessing import StandardScaler
 
 
 # Connect SQL Server
-conn = pytds.connect('####', '####', '####', '####')
-cur = conn.cursor()
-data = cur.execute('''
-    SELECT
-        CHERN_FLAG
-        ,OLYMPIC_SEGMENT
-        ,TOTAL
-        ,GP
-        ,BUSKET_SIZE
-        ,TOTAL_PRODUCT
-    FROM ####.####.####
-''')
-rows = data.fetchall()
-df = pd.DataFrame(rows)
-df.columns = ['SBL_MEMBER_ID','CHURN_FLAG','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
+def load_data():
+    conn = pytds.connect('####', '####', '####', '####')
+    cur = conn.cursor()
+    data = cur.execute(
+        """"
+        SELECT
+            ID
+            ,CHERN_FLAG
+            ,OLYMPIC_SEGMENT
+            ,TOTAL
+            ,GP
+            ,BUSKET_SIZE
+            ,TOTAL_PRODUCT
+        FROM ####.####.####
+        """
+    )
+    rows = data.fetchall()
+    df = pd.DataFrame(rows)
+    df.columns = ['ID','CHURN_FLAG','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
+    cur.close()
+    conn.close()
+    return df
+df = load_data()
 print(df.head())
-cur.close()
-conn.close()
-
 
 # Separate Feature and Target
-ID = df[['SBL_MEMBER_ID']]
-X = df[['SBL_MEMBER_ID','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']]
+ID = df[['ID']]
+X = df[['ID','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']]
 Y = df[['CHURN_FLAG']]
 
 
@@ -46,13 +51,13 @@ label_encoder = LabelEncoder()
 
 # Encoding ID
 encoding_id = pd.DataFrame()
-encoding_id['SBL_MEMBER_ID'] = pd.to_numeric(label_encoder.fit_transform(ID['SBL_MEMBER_ID']))
+encoding_id['ID'] = pd.to_numeric(label_encoder.fit_transform(ID['ID']))
 encoding_id.columns = ['ENCODED_ID']
 Master_ID_encoded = pd.concat([ID,encoding_id], axis=1)
 print(Master_ID_encoded.head())
 
 # Encoding X
-encoding_x = ['SBL_MEMBER_ID','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
+encoding_x = ['ID','OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT']
 x_encoded = pd.DataFrame()
 for i in encoding_x:
     x_encoded[i] = pd.to_numeric(label_encoder.fit_transform(X[i]))
@@ -96,7 +101,7 @@ for a in algo:
     result_x = pd.DataFrame(x_test).reset_index(drop=True)
     result_y = pd.DataFrame(y_test).reset_index(drop=True)
     concat_result = pd.concat([result_x,result_y], axis=1)
-    result = concat_result.merge(Master_ID_encoded, left_on='SBL_MEMBER_ID', right_on='ENCODED_ID', suffixes=('_Encoded', ''))
+    result = concat_result.merge(Master_ID_encoded, left_on='ID', right_on='ENCODED_ID', suffixes=('_Encoded', ''))
     export_result = result.to_csv(r'/mnt/c/Users/####/ML_Models/Churn_Prediction/Churn_Result.csv', index = False)
     score=model.score(x_test, y_test)
     model_score.append([score, a[1]])
