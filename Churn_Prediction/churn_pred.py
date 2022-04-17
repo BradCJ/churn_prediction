@@ -73,14 +73,13 @@ print(y_encoded.head())
 df = pd.concat([x_encoded,y_encoded], axis = 1)
 
 
-# Pair Plot Graph
+## Pair Plot Graph
 # sns.pairplot(df, vars=['OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT','CHURN_FLAG'], hue='CHURN_FLAG')
 
 
-# Transform Data with Scaler 
+# # Transform to Scaled Data
 # scaler = StandardScaler()
-# scaler.fit(x_encoded)
-# x_sca = scaler.transform(x_encoded)
+# x_sca = scaler.fit_transform(x_encoded.T)
 # x_sca = pd.DataFrame(x_sca, columns = ['OLYMPIC_SEGMENT','TOTAL','GP','BUSKET_SIZE','TOTAL_PRODUCT'])
 
 
@@ -114,7 +113,7 @@ for a in algo:
 print(pd.DataFrame(model_score, columns = ['score', 'model']).sort_values(by = 'score', ascending = False))
 
 
-# Plot Tree Graph
+## Plot Tree Graph
 # clf = tree.DecisionTreeClassifier()
 # model = clf.fit(x_encoded, y_encoded)
 
